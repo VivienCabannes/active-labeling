@@ -1,0 +1,13 @@
+# Python and jupyter cache
+*__pycache__*
+*.ipynb_checkpoints*
+dev.ipynb
+
+# Figure savings
+*/savings/*
+*.pdf
+
+# Packaging
+*.egg-info/
+build/
+dist/
