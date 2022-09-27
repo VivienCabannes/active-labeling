@@ -1,7 +1,6 @@
 # Python and jupyter cache
 *__pycache__*
 *.ipynb_checkpoints*
-dev.ipynb
 
 # Figure savings
 */savings/*
@@ -11,3 +10,6 @@ dev.ipynb
 *.egg-info/
 build/
 dist/
+
+# Data
+*.csv
