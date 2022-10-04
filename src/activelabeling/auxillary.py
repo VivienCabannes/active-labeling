@@ -18,6 +18,8 @@ def get_stepsize(T, gamma_0=1):
 def target_func(x, phases=0, omega=2*np.pi):
     out = x + phases
     out *= omega
+    if isinstance(x, float):
+        return np.sin(out)
     np.sin(out, out=out)
     return out
 
@@ -32,3 +34,14 @@ def median_error(y_pred, y_test, inplace=True):
     np.sqrt(err, out=err)
     np.abs(err, out=err)
     return err.mean()
+
+def mean_error(y_pred, y_test, inplace=True):
+    if inplace:
+        err = y_pred
+        err -= y_test
+    else:
+        err = y_pred - y_test
+    err **= 2
+    err *= err.shape[1]
+    err = np.mean(err)
+    return np.sqrt(err)
