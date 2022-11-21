@@ -1,5 +1,3 @@
-
-from statistics import median
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -8,21 +6,25 @@ from activelabeling import (
     data_dir,
     generate_random_sphere,
     get_stepsize,
-    mean_error,
-    median_error
+    median_error,
 )
 
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = "Times"
-plt.rc('text', usetex=True)
+plt.rc("text", usetex=True)
 
 cols = [3, 4, 5, 6, 7, 8, 10]
-df = pd.read_csv(data_dir / 'weatherHistory.csv', usecols=cols, dtype=float)
+df = pd.read_csv(data_dir / "weatherHistory.csv", usecols=cols, dtype=float)
 
-input_col = ['Temperature (C)', 'Humidity',
-       'Wind Speed (km/h)', 'Wind Bearing (degrees)', 'Visibility (km)',
-       'Pressure (millibars)']
-output_col = ['Apparent Temperature (C)']
+input_col = [
+    "Temperature (C)",
+    "Humidity",
+    "Wind Speed (km/h)",
+    "Wind Bearing (degrees)",
+    "Visibility (km)",
+    "Pressure (millibars)",
+]
+output_col = ["Apparent Temperature (C)"]
 
 n_train = 70000
 causal = True
@@ -77,10 +79,12 @@ y_test /= y_std
 y_small_test -= y_mean
 y_small_test /= y_std
 
+
 # Real temperature baseline
 def easiest_baseline():
     baseline = median_error(x_test[:, :1], y_test, inplace=False)
     print(baseline)
+
 
 easiest_baseline()
 
@@ -95,11 +99,11 @@ np.random.seed(0)
 # Random questions
 n_train, m = y_train.shape
 u = generate_random_sphere(num_it, m)
-v = .3 * np.random.randn(num_it)
+v = 0.3 * np.random.randn(num_it)
 
 # Kernel
 sigma = 1e1
-kernel = Kernel('gaussian', sigma=sigma)
+kernel = Kernel("gaussian", sigma=sigma)
 lambd = 1e-6
 
 # Function parameterization
@@ -110,12 +114,14 @@ kernel.set_support(x_repr)
 K_repr = kernel.get_k()
 K_test = kernel(x_test).T
 
+
 # Assume that parameters where initialized around a good model
 def good_init():
     K = kernel(x_repr)
     lambd = 1e-6 * n_repr
     K += lambd * np.eye(len(K))
     return np.linalg.solve(K, y_train[ind])
+
 
 theta_init = good_init()
 theta_init += 1e-1 * np.random.randn(*theta_init.shape)
@@ -131,9 +137,9 @@ grad = np.empty(theta_w.shape)
 K_train = kernel(x_repr[:1]).T
 
 if resampling:
-    I = np.random.choice(n_train, num_it, replace=True)
+    main_ind = np.random.choice(n_train, num_it, replace=True)
 else:
-    I = np.arange(num_it)
+    main_ind = np.arange(num_it)
 
 for i_g, gamma_0 in enumerate(gammas):
     gamma = get_stepsize(num_it, gamma_0)
@@ -146,8 +152,8 @@ for i_g, gamma_0 in enumerate(gammas):
 
     for i in range(n_repr, num_it):
         # New point
-        ind = I[i]
-        K_train[:] = kernel(x_train[ind:ind+1]).T
+        ind = main_ind[i]
+        K_train[:] = kernel(x_train[ind: ind + 1]).T
 
         # Active update
         epsilon = np.sign((K_train @ theta_w - y_train[ind]) @ u[i])
@@ -174,10 +180,10 @@ for i_g, gamma_0 in enumerate(gammas):
         # Averaging iterates
         theta_ave_w *= i
         theta_ave_w += theta_w
-        theta_ave_w /= (i+1)
+        theta_ave_w /= i + 1
         theta_ave_f *= i
         theta_ave_f += theta_f
-        theta_ave_f /= (i+1)
+        theta_ave_f /= i + 1
 
         y_pred_w = K_test @ theta_ave_w
         full_error_w[i, i_g] = median_error(y_pred_w, y_test)
@@ -185,18 +191,23 @@ for i_g, gamma_0 in enumerate(gammas):
         y_pred_f = K_test @ theta_ave_f
         full_error_f[i, i_g] = median_error(y_pred_f, y_test)
         if not i % int(1e4):
-            print(i//int(1e4), end=',')
+            print(i // int(1e4), end=",")
 
 # fig, ax = plt.subplots(figsize=(2.5, 1.75))
 fig, ax = plt.subplots(figsize=(10, 7))
 for i in range(len(gammas)):
-    a, = ax.plot(full_error_w[n_repr:, i])
-    b, = ax.plot(full_error_f[n_repr:, i])
+    (a,) = ax.plot(full_error_w[n_repr:, i])
+    (b,) = ax.plot(full_error_f[n_repr:, i])
 
-c, = ax.plot(np.arange(n_train-n_repr), np.full(n_train-n_repr, median_error(x_test[:, :1], y_test, inplace=False)), c='k', linestyle='--')
-ax.set_xscale('log')
-ax.set_yscale('log')
-ax.legend([a, b, c], ['active', 'passive', 'baseline'], prop={'size': 6})
+(c,) = ax.plot(
+    np.arange(n_train - n_repr),
+    np.full(n_train - n_repr, median_error(x_test[:, :1], y_test, inplace=False)),
+    c="k",
+    linestyle="--",
+)
+ax.set_xscale("log")
+ax.set_yscale("log")
+ax.legend([a, b, c], ["active", "passive", "baseline"], prop={"size": 6})
 
 # plt.yticks(fontsize=6)
 # plt.xticks(fontsize=6)

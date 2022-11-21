@@ -1,7 +1,7 @@
 
 import numpy as np
 from sklearn.datasets import load_svmlight_file
-from config import LIBSVM_DIR
+from .config import LIBSVM_DIR
 
 
 class DataLoader:
